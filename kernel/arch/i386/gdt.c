@@ -4,7 +4,7 @@
 
 void create_descriptor(size_t entry_index, uint32_t base, uint32_t limit,
                        uint16_t flag) {
-  struct GDTEntry *desc = &gdt[entry_index];
+  struct gdt_entry_t *desc = &gdt[entry_index];
   desc->limit_low = limit & 0x0000FFFF;
   desc->base_low = base & 0x0000FFFF;
   desc->base_mid = (base >> 16) & 0xFF;

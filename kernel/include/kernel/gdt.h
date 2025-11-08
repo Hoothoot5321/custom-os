@@ -47,7 +47,7 @@
   SEG_DESCTYPE(1) | SEG_PRES(1) | SEG_SAVL(0) | SEG_LONG(0) | SEG_SIZE(1) |    \
       SEG_GRAN(1) | SEG_PRIV(3) | SEG_DATA_RDWR
 
-struct GDTEntry {
+struct gdt_entry_t {
   uint16_t limit_low;  // bits 0-15 of limit
   uint16_t base_low;   // bits 0-15 of base
   uint8_t base_mid;    // bits 16-23 of base
@@ -56,13 +56,13 @@ struct GDTEntry {
   uint8_t base_high;   // bits 24-31 of base
 } __attribute__((packed));
 
-struct GDTPtr {
+struct gdt_ptr_t {
   uint16_t limit;
   uint32_t base;
 } __attribute__((packed));
 #define GDT_ENTRIES 5
 
-extern struct GDTEntry gdt[GDT_ENTRIES];
+extern struct gdt_entry_t gdt[GDT_ENTRIES];
 
 void create_descriptor(size_t entry_number, uint32_t base, uint32_t limit,
                        uint16_t flag);

@@ -39,28 +39,33 @@ LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
 KERNEL_OBJS=\
 $(KERNEL_ARCH_OBJS) \
 kernel/kernel.o \
-arch/i386/gdt.o \
+$(ARCHDIR)/gdt.o \
+$(ARCHDIR)/c_idt.o \
+$(ARCHDIR)/exception_handlers.o \
 
-OBJS=\
+OJBS_START = \
 $(ARCHDIR)/crti.o \
 $(ARCHDIR)/crtbegin.o \
-$(KERNEL_OBJS) \
+
+OJBS_END = \
 $(ARCHDIR)/crtend.o \
 $(ARCHDIR)/crtn.o \
 $(ARCHDIR)/set_gdt.o \
 $(ARCHDIR)/reload_gdt.o \
+$(ARCHDIR)/idt.o \
+
+OBJS=\
+$(OJBS_START) \
+$(KERNEL_OBJS) \
+$(OJBS_END) \
 
 
 LINK_LIST=\
 $(LDFLAGS) \
-$(ARCHDIR)/crti.o \
-$(ARCHDIR)/crtbegin.o \
+$(OJBS_START) \
 $(KERNEL_OBJS) \
 $(LIBS) \
-$(ARCHDIR)/crtend.o \
-$(ARCHDIR)/crtn.o \
-$(ARCHDIR)/set_gdt.o \
-$(ARCHDIR)/reload_gdt.o \
+$(OJBS_END) \
 
 OBJS := $(patsubst %.o, $(OBJ_DIR)/%.o,$(OBJS))
 LINK_LIST := $(patsubst %.o, $(OBJ_DIR)/%.o,$(LINK_LIST))

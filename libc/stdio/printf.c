@@ -63,24 +63,35 @@ int printf(const char *restrict format, ...) {
       if (!print(str, len))
         return -1;
       written += len;
-    } else if (*format == 'u') {
+    } else if (*format == 'u' || *format == 'i') {
       format++;
+      bool is_negative = false;
       int val = va_arg(parameters, int);
       if (val == 0) {
         print("0", 1);
+        written++;
+        continue;
+      }
+      if (val < 0) {
+        val *= -1;
+        is_negative = true;
       }
       uint8_t index = 0;
-      char str_out[10] = {0};
+      char str_out[11] = {0};
       while (val > 0) {
         char digit = val % 10 + '0';
         str_out[index] = digit;
         val /= 10;
         index++;
       }
-      for (uint8_t local_index = index - 1; local_index >= 1; local_index--) {
+      for (uint8_t local_index = 0; local_index < index / 2; local_index++) {
         char pre_char = str_out[local_index];
-        str_out[local_index] = str_out[local_index - 1];
-        str_out[local_index - 1] = pre_char;
+        str_out[local_index] = str_out[index - local_index - 1];
+        str_out[index - local_index - 1] = pre_char;
+      }
+      if (is_negative) {
+        str_out[index] = '-';
+        index++;
       }
       print(str_out, index);
       written += index;

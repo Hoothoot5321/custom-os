@@ -2,4 +2,4 @@
 set -e
 . ./iso.sh
 
-qemu-system-$(./target-triplet-to-arch.sh $HOST) -cdrom myos.iso -vnc 0.0.0.0:0
+qemu-system-$(./target-triplet-to-arch.sh $HOST) -cdrom myos.iso -serial stdio -vnc 0.0.0.0:0 websocket=on
