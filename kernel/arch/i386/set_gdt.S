@@ -6,8 +6,8 @@ gdtr:
     dd 0               
 
 section    .text
-    global setGdt
-setGdt:
+    global set_gdt
+set_gdt:
     mov ax,[esp+4]
     mov word [gdtr],ax
 

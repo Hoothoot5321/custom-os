@@ -1,3 +1,9 @@
+PROJECT_NAME=myos.kernel
+BUILD_DIR=../build
+OBJ_DIR=$(BUILD_DIR)/objs
+
+TARGET=$(BUILD_DIR)/$(PROJECT_NAME)
+
 DEFAULT_HOST!=../default-host.sh
 HOST?=DEFAULT_HOST
 HOSTARCH!=../target-triplet-to-arch.sh $(HOST)
@@ -44,6 +50,7 @@ $(ARCHDIR)/crtn.o \
 $(ARCHDIR)/set_gdt.o \
 $(ARCHDIR)/reload_gdt.o \
 
+
 LINK_LIST=\
 $(LDFLAGS) \
 $(ARCHDIR)/crti.o \
@@ -55,29 +62,40 @@ $(ARCHDIR)/crtn.o \
 $(ARCHDIR)/set_gdt.o \
 $(ARCHDIR)/reload_gdt.o \
 
+OBJS := $(patsubst %.o, $(OBJ_DIR)/%.o,$(OBJS))
+LINK_LIST := $(patsubst %.o, $(OBJ_DIR)/%.o,$(LINK_LIST))
+
+$(foreach dir,$(sort $(dir $(OBJS))),$(shell mkdir -p $(dir)))
 
 .PHONY: all clean install install-headers install-kernel
 .SUFFIXES: .o .c .S
 
-all: myos.kernel
+all: $(TARGET) 
 
-myos.kernel: $(OBJS) $(ARCHDIR)/linker.ld
+$(TARGET): $(OBJS) $(ARCHDIR)/linker.ld 
 	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LINK_LIST)
-	grub-file --is-x86-multiboot myos.kernel
+	grub-file --is-x86-multiboot $(TARGET) 
 
-$(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
+$(OBJ_DIR)/$(ARCHDIR)/crtbegin.o $(OBJ_DIR)/$(ARCHDIR)/crtend.o:
 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
-.c.o:
+$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
 	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
-.S.o:
+$(OBJ_DIR)/%.o: %.S | $(OBJ_DIR)
 	$(NASM) $(NASMFLAGS) -o $@ $<
 
+$(OBJ_DIR)/%.o: %.s | $(OBJ_DIR)
+	$(NASM) $(NASMFLAGS) -o $@ $<
+
+$(BUILD_DIR):
+	mkdir $(BUILD_DIR)
+
+$(OBJ_DIR): | $(BUILD_DIR)
+	mkdir $(OBJ_DIR)
+
 clean:
-	rm -f myos.kernel
-	rm -f $(OBJS) *.o */*.o */*/*.o
-	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
+	rm -rf $(BUILD_DIR)
 
 install: install-headers install-kernel
 
@@ -85,8 +103,8 @@ install-headers:
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDEDIR)/.
 
-install-kernel: myos.kernel
+install-kernel: $(TARGET) 
 	mkdir -p $(DESTDIR)$(BOOTDIR)
-	cp myos.kernel $(DESTDIR)$(BOOTDIR)
+	cp $(TARGET) $(DESTDIR)$(BOOTDIR)
 
 -include $(OBJS:.o=.d)

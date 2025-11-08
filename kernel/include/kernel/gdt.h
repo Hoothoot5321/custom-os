@@ -66,7 +66,7 @@ extern struct GDTEntry gdt[GDT_ENTRIES];
 
 void create_descriptor(size_t entry_number, uint32_t base, uint32_t limit,
                        uint16_t flag);
-extern void reloadSegments();
-extern void setGdt(uint16_t gdt_limit, uint32_t gdt_base);
+extern void reload_segments();
+extern void set_gdt(uint16_t gdt_limit, uint32_t gdt_base);
 
 #endif

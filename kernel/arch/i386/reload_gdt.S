@@ -1,9 +1,9 @@
 bits 32
 
-global reloadSegments 
+global reload_segments 
 extern gdt_ptr
 
-reloadSegments:
+reload_segments:
    jmp   0x08:reload_CS 
 reload_CS:
    mov   ax, 0X10 

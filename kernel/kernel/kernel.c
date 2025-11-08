@@ -9,6 +9,7 @@ struct GDTPtr gdt_ptr;
 
 struct GDTPtr second_gdt_ptr;
 void kernel_main(void) {
+
   __asm__ volatile("cli");
 
   create_descriptor(0, 0, 0, 0);
@@ -20,8 +21,8 @@ void kernel_main(void) {
   gdt_ptr.limit = sizeof(gdt[0]) * GDT_ENTRIES - 1;
   gdt_ptr.base = (uint32_t)&gdt;
 
-  setGdt(gdt_ptr.limit, gdt_ptr.base);
-  reloadSegments();
+  set_gdt(gdt_ptr.limit, gdt_ptr.base);
+  reload_segments();
 
   __asm__ volatile("sti");
 
