@@ -42,6 +42,8 @@ kernel/kernel.o \
 $(ARCHDIR)/gdt.o \
 $(ARCHDIR)/c_idt.o \
 $(ARCHDIR)/exception_handlers.o \
+$(ARCHDIR)/pic_handler.o \
+$(ARCHDIR)/global.o \
 
 OJBS_START = \
 $(ARCHDIR)/crti.o \

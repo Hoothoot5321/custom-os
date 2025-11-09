@@ -29,10 +29,16 @@
 #define PIC_READ_IRR 0x0a /* OCW3 irq ready next CMD read */
 #define PIC_READ_ISR 0x0b /* OCW3 irq service next CMD read */
 
+#define PIC_INTERRUPT_COUNT 16
+
+#define PERIPHERAL_PORT 0x60
+
 void setup_PIC(void);
 
 extern void outb(uint16_t port, uint8_t val);
 extern uint8_t inb(uint16_t port);
 extern void io_wait(void);
+
+extern uint32_t pic_stub_table[PIC_INTERRUPT_COUNT];
 
 #endif

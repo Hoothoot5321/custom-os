@@ -30,22 +30,24 @@ void kernel_main(void) {
   idt_init();
   setup_PIC();
 
-  //__asm__ volatile("sti");
+  __asm__ volatile("sti");
   bool pressed = false;
 
   terminal_initialize();
   // test_print();
   while (true) {
-    outb(PIC1_COMMAND, PIC_READ_IRR);
-    uint8_t val = inb(PIC1_COMMAND);
-    bool cur = val & 0x02;
-    if (cur & !pressed) {
-      uint8_t scancode = inb(0x60);
-      if (!(scancode & 0x80)) {
-      }
-      outb(PIC1_COMMAND, PIC_EOI);
-    }
+    /*
+outb(PIC1_COMMAND, PIC_READ_IRR);
+uint8_t val = inb(PIC1_COMMAND);
+bool cur = val & 0x02;
+if (cur & !pressed) {
+uint8_t scancode = inb(0x60);
+if (!(scancode & 0x80)) {
+}
+outb(PIC1_COMMAND, PIC_EOI);
+}
 
-    pressed = cur;
+pressed = cur;
+    */
   }
 }

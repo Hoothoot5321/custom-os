@@ -24,7 +24,7 @@ void PIC_remap(int offset1, int offset2) {
   io_wait();
 
   // Unmask both PICs.
-  outb(PIC1_DATA, 0xFF);
+  outb(PIC1_DATA, 0xFF ^ 0x03);
   outb(PIC2_DATA, 0xFF);
   // outb(PIC1_DATA, ~(1 << 1) & ~(1 << 2)); // unmask IRQ1 + cascade
   // outb(PIC2_DATA, 0xFF);                  // mask all slave IRQs
