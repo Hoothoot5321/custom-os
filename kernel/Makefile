@@ -53,6 +53,10 @@ $(ARCHDIR)/crtn.o \
 $(ARCHDIR)/set_gdt.o \
 $(ARCHDIR)/reload_gdt.o \
 $(ARCHDIR)/idt.o \
+$(ARCHDIR)/pic.o \
+$(ARCHDIR)/pic_asm.o \
+$(ARCHDIR)/test_nasm.o \
+$(ARCHDIR)/test_nasm_asm.o \
 
 OBJS=\
 $(OJBS_START) \

@@ -36,7 +36,6 @@ void print_fram_hex(isr_frame_t *stack_frame) {
 void error_code_exception_handler(isr_frame_t *stack_frame) {
   printf("Exception with err code: %i\nError code: %i\n", stack_frame->int_no,
          stack_frame->error_code);
-
   while (true) {
     __asm__ volatile("cli; hlt");
   }
@@ -44,7 +43,6 @@ void error_code_exception_handler(isr_frame_t *stack_frame) {
 
 void no_error_code_exception_handler(isr_frame_t *stack_frame) {
   printf("Exception without err code: %i\n", stack_frame->int_no);
-  print_fram_hex(stack_frame);
   while (true) {
     __asm__ volatile("cli; hlt");
   }

@@ -1,4 +1,6 @@
 #include "kernel/idt.h"
+#include "kernel/pic.h"
+#include "kernel/test_nasm.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -26,27 +28,24 @@ void kernel_main(void) {
   reload_segments();
 
   idt_init();
+  setup_PIC();
 
-  __asm__ volatile("sti");
+  //__asm__ volatile("sti");
+  bool pressed = false;
 
   terminal_initialize();
-  printf("%u, %u\n", 26946, 12345);
-  printf("GOING TO ERROR BABY!!\n");
-  __asm__ __volatile__(
-      "cli\n\t"               // Disable interrupts to avoid noise
-      "mov $0x6944, %%ax\n\t" // Invalid segment selector value
-      "mov %%ax, %%ds\n\t"    // Load DS with invalid selector, triggers #GP
-      "hlt\n\t"               // Halt CPU after fault to stop further execution
-      :
-      :
-      : "ax");
+  // test_print();
+  while (true) {
+    outb(PIC1_COMMAND, PIC_READ_IRR);
+    uint8_t val = inb(PIC1_COMMAND);
+    bool cur = val & 0x02;
+    if (cur & !pressed) {
+      uint8_t scancode = inb(0x60);
+      if (!(scancode & 0x80)) {
+      }
+      outb(PIC1_COMMAND, PIC_EOI);
+    }
 
-  __asm__ volatile("cli; hlt");
-
-  printf("Old Limit %u\n", gdt_ptr.limit);
-  printf("Old Base %u\n", gdt_ptr.base);
-  __asm__ volatile("sgdt %0" : "=m"(second_gdt_ptr));
-
-  printf("New Limit %u\n", second_gdt_ptr.limit);
-  printf("New Base %u\n", second_gdt_ptr.base);
+    pressed = cur;
+  }
 }
