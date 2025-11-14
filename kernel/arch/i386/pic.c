@@ -1,4 +1,6 @@
 #include <kernel/pic.h>
+#include <stdint.h>
+#include <stdio.h>
 
 void PIC_remap(int offset1, int offset2) {
   outb(PIC1_COMMAND,
@@ -24,10 +26,13 @@ void PIC_remap(int offset1, int offset2) {
   io_wait();
 
   // Unmask both PICs.
-  outb(PIC1_DATA, 0xFF ^ 0x03);
-  outb(PIC2_DATA, 0xFF);
+  outb(PIC1_DATA,
+       0xFF ^ (PIC1_TIMER_IRQ | PIC1_CASCADE_IRQ | PIC1_KEYBOARD_IRQ));
+  io_wait();
+  outb(PIC2_DATA, 0xFF ^ PIC2_PRIMARY_IDE_IRQ);
+  io_wait();
   // outb(PIC1_DATA, ~(1 << 1) & ~(1 << 2)); // unmask IRQ1 + cascade
   // outb(PIC2_DATA, 0xFF);                  // mask all slave IRQs
 }
 
-void setup_PIC() { PIC_remap(PIC1, PIC2); }
+void setup_PIC() { PIC_remap(PIC1_IDT_OFFSET, PIC2_IDT_OFFSET); }

@@ -14,11 +14,11 @@
       "-D__is_kernel",
       "-Iinclude",
       "-o",
-      "../build/objs/arch/i386/pic_handler.o",
-      "arch/i386/pic_handler.c"
+      "../build/objs/kernel/kernel.o",
+      "kernel/kernel.c"
     ],
     "directory": "/home/hoothoot/Programming/Tests/os_test/meaty-skeleton/kernel",
-    "file": "/home/hoothoot/Programming/Tests/os_test/meaty-skeleton/kernel/arch/i386/pic_handler.c",
-    "output": "/home/hoothoot/Programming/Tests/os_test/meaty-skeleton/build/objs/arch/i386/pic_handler.o"
+    "file": "/home/hoothoot/Programming/Tests/os_test/meaty-skeleton/kernel/kernel/kernel.c",
+    "output": "/home/hoothoot/Programming/Tests/os_test/meaty-skeleton/build/objs/kernel/kernel.o"
   }
 ]

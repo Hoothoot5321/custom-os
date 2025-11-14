@@ -45,6 +45,7 @@ void idt_init(void);
 
 extern bool vectors[IDT_MAX_DESCRIPTORS];
 extern uint32_t isr_stub_table[CPU_EXCEPTION_COUNT];
+extern uint32_t default_stub_table[IDT_MAX_DESCRIPTORS];
 
 extern void set_idt(uint16_t gdt_limit, uint32_t gdt_base);
 #endif

@@ -1,3 +1,4 @@
+#include "kernel/default_interrupts.h"
 #include "kernel/pic.h"
 #include <kernel/idt.h>
 #include <kernel/pic.h>
@@ -38,5 +39,12 @@ void idt_init() {
     vectors[vector] = true;
   }
 
+  for (uint8_t vector = 0; vector < IDT_MAX_DESCRIPTORS - 1; vector++) {
+    if (!vectors[vector]) {
+      idt_set_descriptor(vector, default_stub_table[vector],
+                         IDT_DESCRIPTOR_EXTERNAL);
+    }
+    vectors[vector] = true;
+  }
   set_idt(idtr.limit, idtr.base);
 }

@@ -1,6 +1,7 @@
+#include "kernel/globals.h"
 #include "kernel/idt.h"
 #include "kernel/pic.h"
-#include "kernel/test_nasm.h"
+#include <kernel/multiboot.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -11,9 +12,28 @@ struct gdt_entry_t gdt[GDT_ENTRIES];
 struct gdt_ptr_t gdt_ptr;
 struct gdt_ptr_t second_gdt_ptr;
 
-void kernel_main(void) {
+int main(multiboot_info_t *mbd, unsigned int magic) {
 
+  uint64_t *val = (uint64_t *)(VIRTUAL_OFFSET | 0x0FFFFFFF);
+
+  terminal_initialize();
+  printf("Hello son\n");
+  printf("GDT: %llx\n", &gdt_ptr);
+  // printf("Nice man\n");
   __asm__ volatile("cli");
+
+  /*
+terminal_initialize();
+
+if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
+printf("Invalid magic!\n");
+return -1;
+}
+if (!(multi_boot_descriptor->flags >> 6 & 0x01)) {
+printf("Invalid mmap given by grub\n");
+return -1;
+}
+  */
 
   create_descriptor(0, 0, 0, 0);
   create_descriptor(1, 0, 0xFFFFFF, (GDT_CODE_PL0));
@@ -31,23 +51,21 @@ void kernel_main(void) {
   setup_PIC();
 
   __asm__ volatile("sti");
-  bool pressed = false;
-
-  terminal_initialize();
-  // test_print();
+  printf("Nic cuck\n");
   while (true) {
-    /*
-outb(PIC1_COMMAND, PIC_READ_IRR);
-uint8_t val = inb(PIC1_COMMAND);
-bool cur = val & 0x02;
-if (cur & !pressed) {
-uint8_t scancode = inb(0x60);
-if (!(scancode & 0x80)) {
-}
-outb(PIC1_COMMAND, PIC_EOI);
+
+    __asm__ volatile("hlt");
+  }
+  return 0;
 }
 
-pressed = cur;
-    */
+void kernel_main(multiboot_info_t *mbd, unsigned int magic) {
+  int out = main(mbd, magic);
+  if (out < 0) {
+    printf("Main exited with fail\n");
+  } else {
+    printf("Main exited with success\n");
+  }
+  while (true) {
   }
 }

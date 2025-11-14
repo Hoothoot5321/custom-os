@@ -5,7 +5,9 @@ EOI equ 0x20
 PIC_AMOUNT equ 16
 
 global outb
+global outw
 global inb
+global inw
 global io_wait
 outb:
 	mov dx, [esp+4]
@@ -15,11 +17,28 @@ outb:
 
 	ret
 
+outw:
+	mov dx, [esp+4]
+	mov ax, [esp+8]
+
+	out dx, ax
+
+	ret
+
+
 inb:
 	xor eax, eax
 	mov dx, [esp+4]
 
 	in al, dx
+
+	ret
+
+inw:
+	xor eax, eax
+	mov dx, [esp+4]
+
+	in ax, dx
 
 	ret
 
@@ -51,10 +70,10 @@ isr_stub_pic_%+%1:
 	popa
 
 	mov al, EOI
-	out PIC1, al 
-	%if %1>7
+	%if %1>=8
 		out PIC2, al
 	%endif
+	out PIC1, al 
 
     iret 
 %endmacro

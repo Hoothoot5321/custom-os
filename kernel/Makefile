@@ -44,6 +44,9 @@ $(ARCHDIR)/c_idt.o \
 $(ARCHDIR)/exception_handlers.o \
 $(ARCHDIR)/pic_handler.o \
 $(ARCHDIR)/global.o \
+$(ARCHDIR)/ata_ide.o \
+$(ARCHDIR)/c_default_interrupts.o \
+$(ARCHDIR)/default_interrupts.o \
 
 OJBS_START = \
 $(ARCHDIR)/crti.o \

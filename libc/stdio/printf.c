@@ -1,3 +1,4 @@
+#include "kernel/globals.h"
 #include <limits.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -5,6 +6,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
+char hex_map[6] = {'a', 'b', 'c', 'd', 'e', 'f'};
+
+void reverse_arr(char *buf, size_t length);
+
+void num_to_str(int64_t num, char out_buf[21]);
+void num_to_hex_str(int64_t num, char out_buf[21]);
 
 static bool print(const char *data, size_t length) {
   const unsigned char *bytes = (const unsigned char *)data;
@@ -19,96 +27,160 @@ int printf(const char *restrict format, ...) {
   va_start(parameters, format);
 
   int written = 0;
+  char prefix = '\0';
 
   while (*format != '\0') {
-    size_t maxrem = INT_MAX - written;
-
-    if (format[0] != '%' || format[1] == '%') {
-      if (format[0] == '%')
-        format++;
-      size_t amount = 1;
-      while (format[amount] && format[amount] != '%')
-        amount++;
-      if (maxrem < amount) {
-        // TODO: Set errno to EOVERFLOW.
-        return -1;
-      }
-      if (!print(format, amount))
-        return -1;
-      format += amount;
-      written += amount;
+    char cur_char = *format;
+    if ((cur_char != '%') && !prefix) {
+      print(&cur_char, sizeof(char));
+      format++;
+      written++;
       continue;
     }
-
-    const char *format_begun_at = format++;
-
-    if (*format == 'c') {
+    char next_char = *(format + 1);
+    format++;
+    if (next_char == 'c') {
+      char val = va_arg(parameters, int);
+      print(&val, sizeof(val));
       format++;
-      char c = (char)va_arg(parameters, int /* char promotes to int */);
-      if (!maxrem) {
-        // TODO: Set errno to EOVERFLOW.
-        return -1;
-      }
-      if (!print(&c, sizeof(c)))
-        return -1;
       written++;
-    } else if (*format == 's') {
+      continue;
+    }
+    if (next_char == 's') {
+
+      char *val = va_arg(parameters, char *);
+      size_t len = strlen(val);
+      print(val, len);
       format++;
-      const char *str = va_arg(parameters, const char *);
-      size_t len = strlen(str);
-      if (maxrem < len) {
-        // TODO: Set errno to EOVERFLOW.
-        return -1;
-      }
-      if (!print(str, len))
-        return -1;
       written += len;
-    } else if (*format == 'u' || *format == 'i') {
+      continue;
+    }
+    if (next_char == 'u' || next_char == 'i') {
+
+      char out_buf[21] = {'\0'};
+      if (!prefix) {
+        int val = va_arg(parameters, int);
+        num_to_str((int64_t)val, out_buf);
+      }
+      if (prefix == 'l') {
+        prefix = '\0';
+        long val = va_arg(parameters, long);
+        num_to_str(val, out_buf);
+      }
+
+      if (prefix == 'L') {
+        prefix = '\0';
+        long long val = va_arg(parameters, long long);
+        num_to_str(val, out_buf);
+      }
+      size_t len = strlen(out_buf);
+      print(out_buf, len);
       format++;
-      bool is_negative = false;
-      int val = va_arg(parameters, int);
-      if (val == 0) {
-        print("0", 1);
-        written++;
+      written += len;
+      continue;
+    }
+    if (next_char == 'x') {
+      char out_buf[21] = {'\0'};
+      if (!prefix) {
+        int val = va_arg(parameters, int);
+        num_to_hex_str((int64_t)val, out_buf);
+      }
+      if (prefix == 'l') {
+        prefix = '\0';
+        long val = va_arg(parameters, long);
+        num_to_hex_str(val, out_buf);
+      }
+      if (prefix == 'L') {
+        prefix = '\0';
+        long long val = va_arg(parameters, long long);
+        num_to_hex_str(val, out_buf);
+      }
+      size_t len = strlen(out_buf);
+      print(out_buf, len);
+      format++;
+      written += len;
+      continue;
+    }
+    if (next_char == 'l') {
+      if (prefix == 'l') {
+        prefix = 'L';
         continue;
       }
-      if (val < 0) {
-        val *= -1;
-        is_negative = true;
-      }
-      uint8_t index = 0;
-      char str_out[11] = {0};
-      while (val > 0) {
-        char digit = val % 10 + '0';
-        str_out[index] = digit;
-        val /= 10;
-        index++;
-      }
-      for (uint8_t local_index = 0; local_index < index / 2; local_index++) {
-        char pre_char = str_out[local_index];
-        str_out[local_index] = str_out[index - local_index - 1];
-        str_out[index - local_index - 1] = pre_char;
-      }
-      if (is_negative) {
-        str_out[index] = '-';
-        index++;
-      }
-      print(str_out, index);
-      written += index;
-    } else {
-      format = format_begun_at;
-      size_t len = strlen(format);
-      if (maxrem < len) {
-        // TODO: Set errno to EOVERFLOW.
-        return -1;
-      }
-      if (!print(format, len))
-        return -1;
-      written += len;
-      format += len;
+      prefix = next_char;
+      continue;
     }
+    va_end(parameters);
+    return -1;
   }
-
   va_end(parameters);
   return written;
+}
+
+void num_to_str(int64_t num, char out_buf[21]) {
+  bool is_negative = false;
+  if (num == 0) {
+    out_buf[0] = '0';
+    return;
+  }
+  if (num < 0) {
+    is_negative = true;
+  }
+
+  uint64_t u_num = is_negative ? -(uint64_t)num : (uint64_t)num;
+
+  uint64_t index = 0;
+
+  while (u_num > 0) {
+    uint8_t rest = u_num % 10;
+    out_buf[index] = rest + '0';
+    u_num /= 10;
+    index++;
+  }
+  if (is_negative) {
+    out_buf[index] = '-';
+    index++;
+  }
+
+  reverse_arr(out_buf, index);
+  return;
+}
+
+void num_to_hex_str(int64_t num, char out_buf[21]) {
+  bool is_negative = false;
+  if (num == 0) {
+    out_buf[0] = '0';
+    return;
+  }
+
+  if (num < 0) {
+    is_negative = true;
+  }
+  uint64_t u_num = is_negative ? -(uint64_t)num : (uint64_t)num;
+
+  uint64_t index = 0;
+
+  while (u_num > 0) {
+    uint8_t rest = u_num % 16;
+    char digit = rest + '0';
+    if (rest > 9) {
+      digit = hex_map[rest - 10];
+    }
+    out_buf[index] = digit;
+    u_num /= 16;
+    index++;
+  }
+  if (is_negative) {
+    out_buf[index] = '-';
+    index++;
+  }
+  reverse_arr(out_buf, index);
+  return;
+}
+
+void reverse_arr(char *buf, size_t length) {
+  for (size_t i = 0; i < length / 2; i++) {
+    char temp = buf[length - i - 1];
+    buf[length - i - 1] = buf[i];
+    buf[i] = temp;
+  }
 }
