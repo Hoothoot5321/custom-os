@@ -1,6 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
+#include "kernel/multiboot.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -14,8 +15,8 @@
 
 #define VIRTUAL_OFFSET 0xC0000000
 
-extern void _kernel_start;
-extern void _kernel_end;
+extern char _kernel_start_phys[];
+extern char _kernel_end_viz[];
 
 extern volatile size_t system_timer_counter;
 
@@ -34,5 +35,6 @@ void lock_door();
 void unlock_door();
 
 void door();
+void setup_memory_bitmap(multiboot_info_t *mbd);
 
 #endif

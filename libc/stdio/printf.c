@@ -12,7 +12,7 @@ char hex_map[6] = {'a', 'b', 'c', 'd', 'e', 'f'};
 void reverse_arr(char *buf, size_t length);
 
 void num_to_str(int64_t num, char out_buf[21]);
-void num_to_hex_str(int64_t num, char out_buf[21]);
+void num_to_hex_str(uint64_t num, char out_buf[21]);
 
 static bool print(const char *data, size_t length) {
   const unsigned char *bytes = (const unsigned char *)data;
@@ -83,17 +83,17 @@ int printf(const char *restrict format, ...) {
       char out_buf[21] = {'\0'};
       if (!prefix) {
         int val = va_arg(parameters, int);
-        num_to_hex_str((int64_t)val, out_buf);
+        num_to_hex_str((uint64_t)(uint32_t)val, out_buf);
       }
       if (prefix == 'l') {
         prefix = '\0';
         long val = va_arg(parameters, long);
-        num_to_hex_str(val, out_buf);
+        num_to_hex_str((uint64_t)(uint32_t)val, out_buf);
       }
       if (prefix == 'L') {
         prefix = '\0';
         long long val = va_arg(parameters, long long);
-        num_to_hex_str(val, out_buf);
+        num_to_hex_str((uint64_t)val, out_buf);
       }
       size_t len = strlen(out_buf);
       print(out_buf, len);
@@ -145,32 +145,22 @@ void num_to_str(int64_t num, char out_buf[21]) {
   return;
 }
 
-void num_to_hex_str(int64_t num, char out_buf[21]) {
-  bool is_negative = false;
+void num_to_hex_str(uint64_t num, char out_buf[21]) {
   if (num == 0) {
     out_buf[0] = '0';
     return;
   }
 
-  if (num < 0) {
-    is_negative = true;
-  }
-  uint64_t u_num = is_negative ? -(uint64_t)num : (uint64_t)num;
-
   uint64_t index = 0;
 
-  while (u_num > 0) {
-    uint8_t rest = u_num % 16;
+  while (num > 0) {
+    uint8_t rest = num % 16;
     char digit = rest + '0';
     if (rest > 9) {
       digit = hex_map[rest - 10];
     }
     out_buf[index] = digit;
-    u_num /= 16;
-    index++;
-  }
-  if (is_negative) {
-    out_buf[index] = '-';
+    num /= 16;
     index++;
   }
   reverse_arr(out_buf, index);

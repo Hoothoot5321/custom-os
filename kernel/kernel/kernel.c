@@ -2,6 +2,7 @@
 #include "kernel/idt.h"
 #include "kernel/pic.h"
 #include <kernel/multiboot.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -13,27 +14,20 @@ struct gdt_ptr_t gdt_ptr;
 struct gdt_ptr_t second_gdt_ptr;
 
 int main(multiboot_info_t *mbd, unsigned int magic) {
-
-  uint64_t *val = (uint64_t *)(VIRTUAL_OFFSET | 0x0FFFFFFF);
+  mbd = (multiboot_info_t *)((uint32_t)mbd + VIRTUAL_OFFSET);
 
   terminal_initialize();
-  printf("Hello son\n");
-  printf("GDT: %llx\n", &gdt_ptr);
-  // printf("Nice man\n");
   __asm__ volatile("cli");
+  printf("Terminal start\n");
 
-  /*
-terminal_initialize();
-
-if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
-printf("Invalid magic!\n");
-return -1;
-}
-if (!(multi_boot_descriptor->flags >> 6 & 0x01)) {
-printf("Invalid mmap given by grub\n");
-return -1;
-}
-  */
+  if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
+    printf("Invalid magic!\n");
+    return -1;
+  }
+  if (!(mbd->flags >> 6 & 0x01)) {
+    printf("Invalid mmap given by grub\n");
+    return -1;
+  }
 
   create_descriptor(0, 0, 0, 0);
   create_descriptor(1, 0, 0xFFFFFF, (GDT_CODE_PL0));
@@ -50,8 +44,34 @@ return -1;
   idt_init();
   setup_PIC();
 
+  setup_memory_bitmap(mbd);
+
   __asm__ volatile("sti");
-  printf("Nic cuck\n");
+
+  printf("Start kernel: %x\n", (uint32_t)_kernel_start_phys);
+  printf("End kernel: %x\n", (uint32_t)_kernel_end_viz);
+
+  for (size_t index = 0; index < BITMAP_SIZE; index++) {
+    uint64_t addr = index * PAGE_SIZE;
+
+    printf("%llx: %i\n", addr, (memory_bitmap[index / 8] >> (index % 8)) & 1);
+
+    if (index % 8 == 0) {
+      lock_door();
+      door();
+      terminal_initialize();
+      for (size_t page_index = 0; page_index < mbd->mmap_length;
+           page_index += sizeof(multiboot_memory_map_t)) {
+
+        multiboot_memory_map_t *mmm =
+            (multiboot_memory_map_t *)(mbd->mmap_addr + page_index +
+                                       VIRTUAL_OFFSET);
+
+        printf("Addr: %llx | End Addr: %llx | Type: %i\n", mmm->addr,
+               mmm->addr + mmm->len, mmm->type);
+      }
+    }
+  }
   while (true) {
 
     __asm__ volatile("hlt");

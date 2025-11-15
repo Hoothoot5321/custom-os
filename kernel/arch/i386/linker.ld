@@ -15,7 +15,7 @@ SECTIONS
 	/* First put the multiboot header, as it is required to be put very early
 	   early in the image or the bootloader won't recognize the file format.
 	   Next we'll put the .text section. */
-	_kernel_start = .;
+	_kernel_start_phys = .;
 
 	.multiboot.data : {
 		*(.multiboot.data)
@@ -52,7 +52,6 @@ SECTIONS
 		*(.stack)
 	}
 	
-	_kernel_end = .;
-	PROVIDE(_kernel_end = .);
+	_kernel_end_viz = .;
 
 }

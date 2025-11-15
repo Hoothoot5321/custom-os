@@ -27,6 +27,7 @@ void pic_handler(uint32_t interrupt_number) {
     uint8_t key_code = inb(PERIPHERAL_PORT);
     if (!(key_code & 0x80)) {
       unlock_door();
+      // printf("Hello. Its me\n");
     }
   }
 }

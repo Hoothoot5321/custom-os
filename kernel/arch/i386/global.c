@@ -1,3 +1,4 @@
+#include "kernel/multiboot.h"
 #include <kernel/globals.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -49,4 +50,39 @@ uint8_t set_bit(uint8_t val, uint8_t index, bool on) {
   }
   local_val = val & ~local_val;
   return local_val;
+}
+void setup_memory_bitmap(multiboot_info_t *mbd) {
+
+  for (size_t page_index = 0; page_index < mbd->mmap_length;
+       page_index += sizeof(multiboot_memory_map_t)) {
+    multiboot_memory_map_t *mmmt =
+        (multiboot_memory_map_t *)(mbd->mmap_addr + page_index +
+                                   VIRTUAL_OFFSET);
+
+    // printf("%llx\n", mmmt);
+    if (mmmt->type != MULTIBOOT_MEMORY_AVAILABLE) {
+      continue;
+    }
+
+    uint64_t start_adress = mmmt->addr;
+    uint64_t end_adress = mmmt->addr + mmmt->len;
+
+    if (start_adress % PAGE_SIZE != 0) {
+      start_adress += PAGE_SIZE - (start_adress % PAGE_SIZE);
+    }
+    if (end_adress % PAGE_SIZE != 0) {
+      end_adress -= (end_adress % PAGE_SIZE);
+    }
+
+    for (uint64_t cur_addr = start_adress; cur_addr < end_adress;
+         cur_addr += PAGE_SIZE) {
+      if (cur_addr <= (uint32_t)_kernel_end_viz - VIRTUAL_OFFSET &&
+          cur_addr >= (uint32_t)_kernel_start_phys) {
+        continue;
+      }
+      size_t index = cur_addr / PAGE_SIZE;
+      memory_bitmap[index / 8] =
+          set_bit(memory_bitmap[index / 8], index % 8, true);
+    }
+  }
 }

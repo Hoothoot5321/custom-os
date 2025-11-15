@@ -1,7 +1,7 @@
 bits 32
 extern _init
 extern kernel_main
-extern _kernel_end
+extern _kernel_end_viz
 
 global VIRTUAL_OFFSET
 global PAGE_SIZE
@@ -49,7 +49,7 @@ map_pre_kernel:
 
 	add esi, PAGE_SIZE
 	add edi, 4
-	mov eax, _kernel_end - VIRTUAL_OFFSET
+	mov eax, _kernel_end_viz - VIRTUAL_OFFSET
 	cmp eax, esi
 	jge map_pre_kernel
 
@@ -59,6 +59,7 @@ end_map:
 	or eax, 0x003
 	mov [edi],eax 
 	mov [edi + 768*4],eax 
+	mov [edi + 1023*4],edi
 
 	mov eax, (boot_page_directory - VIRTUAL_OFFSET)
 	mov cr3, eax
